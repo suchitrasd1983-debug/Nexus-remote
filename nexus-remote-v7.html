@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NEXUS">
+<meta name="theme-color" content="#ff1a1a">
+<title>NEXUS REMOTE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --r:#ff1a1a;--r2:#ff6600;--r3:#ff0044;--gold:#ffcc00;
+  --bg:#060000;--panel:#0c0202;--border:rgba(255,26,26,0.2);--dim:#280808;
+  --glow:0 0 8px #ff1a1a,0 0 22px #ff1a1a88,0 0 45px #ff1a1a33;
+  --glow2:0 0 8px #ff6600,0 0 22px #ff660066;
+  --glow3:0 0 8px #ff0044,0 0 22px #ff004466;
+  --glowG:0 0 8px #ffcc00,0 0 22px #ffcc0066;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{background:#000;color:var(--r);font-family:'JetBrains Mono',monospace;touch-action:none;user-select:none;-webkit-user-select:none}
+
+/* ══════════════════════════════════════════════════
+   INTRO — A.M  CINEMATIC
+══════════════════════════════════════════════════ */
+#intro{
+  position:fixed;inset:0;z-index:99999;
+  background:#000;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+/* Particle canvas behind everything */
+#intro-canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* Horizontal scan lines sweeping down */
+.intro-scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,26,26,0.04) 0px,rgba(255,26,26,0.04) 1px,transparent 1px,transparent 3px);
+  animation:scanMove 8s linear infinite;
+}
+@keyframes scanMove{0%{background-position:0 0}100%{background-position:0 300px}}
+
+/* Vignette */
+.intro-vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.85) 100%);
+}
+
+/* Center logo wrap */
+.am-wrap{
+  position:relative;z-index:10;
+  text-align:center;
+  opacity:0;
+  animation:amAppear 0.1s ease 0.8s forwards;
+}
+@keyframes amAppear{to{opacity:1}}
+
+/* The A.M text itself */
+.am-text{
+  font-family:'Orbitron',sans-serif;
+  font-weight:900;
+  font-size:clamp(70px,22vw,160px);
+  letter-spacing:20px;
+  color:transparent;
+  position:relative;
+  display:inline-block;
+  -webkit-text-stroke:1px rgba(255,26,26,0.15);
+}
+
+/* Glitch layers */
+.am-text .layer-main{
+  position:relative;
+  background:linear-gradient(180deg,#fff 0%,#ff8844 40%,#ff1a1a 70%,#aa0000 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 20px #ff1a1a) drop-shadow(0 0 60px rgba(255,26,26,0.5));
+  animation:amPulse 0.08s steps(1) 1.5s 4 forwards, amSettle 0.4s ease 2s forwards;
+}
+@keyframes amPulse{0%,100%{filter:drop-shadow(0 0 20px #ff1a1a) drop-shadow(0 0 60px rgba(255,26,26,0.5))}50%{filter:drop-shadow(0 0 40px #fff) drop-shadow(0 0 100px #ff1a1a) drop-shadow(0 0 160px rgba(255,80,0,0.8))}}
+@keyframes amSettle{to{filter:drop-shadow(0 0 12px #ff1a1a) drop-shadow(0 0 35px rgba(255,26,26,0.4))}}
+
+.am-text .layer-glitch1{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,#0ff 0%,#0ff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  opacity:0;
+  animation:glitch1 0.05s steps(1) 1.0s 8 forwards;
+}
+@keyframes glitch1{
+  0%{opacity:0;transform:translate(-4px,2px) skewX(-2deg)}
+  25%{opacity:0.6;transform:translate(4px,-2px) skewX(3deg)}
+  50%{opacity:0;transform:translate(-2px,0)}
+  75%{opacity:0.4;transform:translate(3px,1px) skewX(-1deg)}
+  100%{opacity:0;transform:translate(0,0)}
+}
+.am-text .layer-glitch2{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,#f0f 0%,#f0f 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  opacity:0;
+  animation:glitch2 0.05s steps(1) 1.1s 6 forwards;
+}
+@keyframes glitch2{
+  0%{opacity:0;transform:translate(5px,-1px) skewX(2deg)}
+  30%{opacity:0.5;transform:translate(-5px,2px) skewX(-3deg)}
+  60%{opacity:0;transform:translate(2px,-2px)}
+  100%{opacity:0;transform:translate(0,0)}
+}
+
+/* Horizontal glitch bars */
+.am-glitch-bar{
+  position:absolute;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,transparent,#ff1a1a,#fff,#ff6600,transparent);
+  opacity:0;
+  animation:glitchBar 0.06s steps(1) 1.2s 5 forwards;
+}
+@keyframes glitchBar{
+  0%{opacity:0;top:20%;transform:scaleX(0.3) translateX(-20%)}
+  20%{opacity:0.8;top:45%;transform:scaleX(1) translateX(0)}
+  40%{opacity:0;top:60%;transform:scaleX(0.5) translateX(10%)}
+  60%{opacity:0.6;top:25%;transform:scaleX(0.8) translateX(-5%)}
+  80%{opacity:0;top:70%;transform:scaleX(0.4)}
+  100%{opacity:0}
+}
+
+/* Subtitle */
+.am-sub{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(10px,3.5vw,18px);
+  letter-spacing:10px;
+  color:transparent;
+  margin-top:8px;
+  animation:amSubReveal 0.5s ease 2.2s forwards;
+  text-transform:uppercase;
+}
+@keyframes amSubReveal{to{color:rgba(255,100,50,0.7);text-shadow:0 0 15px rgba(255,80,0,0.5)}}
+
+.am-tagline{
+  font-size:9px;letter-spacing:4px;color:transparent;
+  margin-top:6px;
+  animation:amSubReveal 0.4s ease 2.5s forwards;
+}
+
+/* Progress bar */
+.am-bar-wrap{
+  width:200px;height:1px;
+  background:rgba(255,26,26,0.12);
+  margin:28px auto 0;
+  opacity:0;animation:fadeOpacity 0.3s ease 2.7s forwards;
+}
+@keyframes fadeOpacity{to{opacity:1}}
+.am-bar{
+  height:100%;width:0;
+  background:linear-gradient(90deg,#ff1a1a,#ff8800,#fff);
+  box-shadow:0 0 8px #ff1a1a,0 0 16px rgba(255,80,0,0.5);
+  animation:amBarFill 1.4s cubic-bezier(0.4,0,0.2,1) 2.8s forwards;
+}
+@keyframes amBarFill{to{width:100%}}
+
+/* Boot lines */
+.intro-lines{
+  position:absolute;bottom:40px;left:0;right:0;
+  font-size:10px;letter-spacing:2px;
+  color:rgba(255,26,26,0.38);
+  text-align:center;padding:0 20px;
+}
+.il{opacity:0;transform:translateX(-6px);transition:all 0.28s}
+.il.show{opacity:1;transform:none}
+
+/* Radial explosion ring (triggered by JS) */
+.exp-ring{
+  position:absolute;
+  border-radius:50%;
+  border:var(--bw,2px) solid var(--rc,#ff1a1a);
+  box-shadow:0 0 20px var(--rc,#ff1a1a),0 0 40px var(--rc,#ff1a1a);
+  left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(0);
+  animation:expRing var(--rd,0.8s) ease-out forwards;
+  pointer-events:none;
+}
+@keyframes expRing{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(var(--rs,4));opacity:0}
+}
+
+/* Intro hide */
+#intro.hide{animation:introHide 0.7s cubic-bezier(0.4,0,1,1) forwards;pointer-events:none}
+@keyframes introHide{
+  0%{opacity:1;transform:scale(1)}
+  30%{opacity:1;transform:scale(1.04) rotate(0.3deg)}
+  100%{opacity:0;transform:scale(1.1) rotate(0)}
+}
+
+/* ══════════════════════════════════════════════════
+   BG
+══════════════════════════════════════════════════ */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,26,26,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,26,0.03) 1px,transparent 1px);background-size:36px 36px;animation:bgDrift 22s linear infinite}
+.bg-radial{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,26,26,0.08) 0%,transparent 70%)}
+.bg-scan{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.028;background:repeating-linear-gradient(0deg,#000 0px,#000 1px,transparent 1px,transparent 4px)}
+@keyframes bgDrift{to{background-position:36px 36px}}
+
+/* ══════════════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════════════ */
+#app{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.on{display:flex;animation:fadeIn 0.28s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.scroll-inner{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 12px 40px}
+
+/* ── HEADER ── */
+.hdr{flex-shrink:0;text-align:center;padding:10px 14px 0}
+.logo{font-family:'Orbitron',sans-serif;font-size:clamp(20px,5.5vw,36px);font-weight:900;letter-spacing:8px;color:var(--r);text-shadow:var(--glow);animation:logoBreath 3s ease-in-out infinite}
+.logo em{font-style:normal;color:var(--r2);text-shadow:var(--glow2)}
+.sub{font-size:8px;letter-spacing:3px;color:var(--dim);margin-top:2px}
+.hdr-line{width:100%;height:1px;margin:8px 0;background:linear-gradient(90deg,transparent,var(--r),transparent);box-shadow:0 0 10px rgba(255,26,26,0.4);animation:lineBreath 3s ease-in-out infinite}
+@keyframes logoBreath{0%,100%{opacity:1}50%{opacity:0.82}}
+@keyframes lineBreath{0%,100%{opacity:0.3;transform:scaleX(0.5)}50%{opacity:1;transform:scaleX(1)}}
+
+/* ── PANEL ── */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px;position:relative;overflow:hidden;margin-bottom:10px}
+.panel::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--r),transparent);opacity:0.4}
+.ptag{position:absolute;top:-1px;left:14px;background:var(--panel);padding:0 6px;font-size:7px;letter-spacing:3px;color:rgba(255,26,26,0.35)}
+.cc{position:absolute;width:9px;height:9px;border-color:rgba(255,26,26,0.35);border-style:solid}
+.tl{top:-1px;left:-1px;border-width:2px 0 0 2px}.tr{top:-1px;right:-1px;border-width:2px 2px 0 0}
+.bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px}.br{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+
+/* ── MODE BUTTONS ── */
+.mrow{display:flex;gap:10px;margin-bottom:0}
+.mbtn{flex:1;padding:16px 8px;background:transparent;border:1px solid rgba(255,26,26,0.14);border-radius:5px;color:rgba(255,26,26,0.28);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;cursor:pointer;transition:all 0.22s;-webkit-tap-highlight-color:transparent}
+.mbtn .mi{font-size:24px;display:block;margin-bottom:6px;filter:grayscale(1) opacity(0.28);transition:all 0.22s}
+.mbtn:active,.mbtn.sel{border-color:var(--r);color:var(--r);box-shadow:inset 0 0 20px rgba(255,26,26,0.07),0 0 16px rgba(255,26,26,0.14);background:rgba(255,26,26,0.04)}
+.mbtn:active .mi,.mbtn.sel .mi{filter:none}
+.mbtn.sel2{border-color:var(--r2);color:var(--r2);box-shadow:inset 0 0 20px rgba(255,102,0,0.07),0 0 16px rgba(255,102,0,0.14);background:rgba(255,102,0,0.04)}
+.mbtn.sel2 .mi{filter:none}
+.mdesc{font-size:8px;letter-spacing:1px;color:var(--dim);margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* ── IDENTITY ── */
+.id-label{font-size:8px;letter-spacing:3px;color:var(--dim);margin-bottom:6px}
+.id-value{font-family:'Orbitron',sans-serif;font-size:clamp(13px,3.5vw,19px);letter-spacing:4px;color:var(--r);text-shadow:var(--glow);word-break:break-all;line-height:1.4}
+.id-badge{display:inline-block;padding:2px 7px;border:1px solid rgba(255,102,0,0.4);border-radius:3px;font-size:7px;letter-spacing:2px;color:var(--r2);margin-left:8px;vertical-align:middle}
+
+/* ── PEER LIST ── */
+.peer-item{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border:1px solid rgba(255,26,26,0.15);border-radius:5px;background:rgba(255,26,26,0.03);cursor:pointer;transition:all 0.18s;-webkit-tap-highlight-color:transparent}
+.peer-item:active{border-color:var(--r);background:rgba(255,26,26,0.08)}
+.pi-name{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--r);flex:1}
+.pi-id{font-size:8px;color:var(--dim);letter-spacing:1px;margin-top:2px}
+.pi-last{font-size:8px;color:rgba(255,102,0,0.5);letter-spacing:1px}
+.pi-connect{font-size:8px;color:var(--r);letter-spacing:2px;padding:4px 8px;border:1px solid rgba(255,26,26,0.3);border-radius:3px;margin-top:3px;text-align:center}
+.p-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.p-dot.h{background:var(--r);box-shadow:0 0 6px var(--r)}
+.p-dot.re{background:var(--r2);box-shadow:0 0 6px var(--r2)}
+.no-peers{font-size:10px;color:var(--dim);letter-spacing:2px;text-align:center;padding:14px 0}
+
+/* ── CODE ── */
+.code-big{font-family:'Orbitron',sans-serif;font-size:clamp(32px,9vw,52px);letter-spacing:14px;color:var(--r);text-shadow:var(--glow);text-align:center;animation:codeFlick 5s steps(1) infinite;padding:6px 0}
+@keyframes codeFlick{0%,93%,95%,100%{opacity:1}94%{opacity:0.2}}
+.code-hint{text-align:center;font-size:9px;letter-spacing:3px;color:var(--dim);margin-top:4px}
+
+/* ── STATUS ── */
+.status{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:2px;padding:8px 12px;margin-bottom:10px;border:1px solid rgba(255,26,26,0.1);border-radius:4px;background:rgba(255,26,26,0.02)}
+.dot{width:7px;height:7px;border-radius:50%;background:#2a0808;flex-shrink:0;transition:all 0.4s}
+.dot.waiting{background:var(--r);box-shadow:0 0 7px var(--r);animation:dpulse 1.2s ease infinite}
+.dot.live{background:#ff7700;box-shadow:0 0 9px #ff7700;animation:dpulse 2s ease infinite}
+.dot.err{background:var(--r3);box-shadow:var(--glow3)}
+@keyframes dpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.scode{margin-left:auto;font-family:'Orbitron',sans-serif;letter-spacing:4px;font-size:11px;color:var(--r)}
+
+/* ── INPUTS ── */
+.field{width:100%;background:rgba(255,26,26,0.03);border:1px solid rgba(255,26,26,0.2);color:var(--r);font-family:'Orbitron',sans-serif;font-size:20px;letter-spacing:8px;padding:12px;text-align:center;border-radius:4px;outline:none;text-transform:uppercase;-webkit-appearance:none}
+.field:focus{border-color:var(--r);box-shadow:0 0 18px rgba(255,26,26,0.18);background:rgba(255,26,26,0.05)}
+.field::placeholder{color:var(--dim);font-size:12px;letter-spacing:4px}
+.field-name{width:100%;background:rgba(255,26,26,0.03);border:1px solid rgba(255,26,26,0.18);color:var(--r);font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:2px;padding:10px;border-radius:4px;outline:none;margin-bottom:8px;-webkit-appearance:none}
+.field-name:focus{border-color:var(--r);box-shadow:0 0 14px rgba(255,26,26,0.15)}
+.field-name::placeholder{color:var(--dim)}
+.crow{display:flex;gap:8px;margin-top:10px}
+
+/* ── BUTTONS ── */
+.btn{padding:11px 18px;background:transparent;border:1px solid var(--r);color:var(--r);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;cursor:pointer;border-radius:4px;text-shadow:var(--glow);transition:all 0.14s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(0.96);background:rgba(255,26,26,0.1);box-shadow:var(--glow)}
+.btn-o{border-color:var(--r2);color:var(--r2);text-shadow:var(--glow2)}.btn-o:active{background:rgba(255,102,0,0.1)}
+.btn-d{border-color:var(--r3);color:var(--r3)}.btn-d:active{background:rgba(255,0,68,0.1)}
+.btn-full{width:100%;text-align:center}.btn-sm{padding:6px 10px;font-size:9px}
+
+/* ── RECV / LOG ── */
+.recv{width:100%;min-height:75px;background:rgba(0,0,0,0.65);border:1px solid rgba(255,26,26,0.12);border-radius:4px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--r);letter-spacing:1px;line-height:1.8;word-break:break-all;white-space:pre-wrap;margin-bottom:8px}
+.cursor{display:inline-block;width:2px;height:1em;background:var(--r);animation:dpulse 1s step-end infinite;vertical-align:middle;margin-left:1px}
+.log{width:100%;height:75px;overflow-y:auto;background:rgba(0,0,0,0.5);border:1px solid rgba(255,26,26,0.07);border-radius:4px;padding:7px 10px;font-size:9px;color:rgba(255,26,26,0.38);scrollbar-width:thin;scrollbar-color:rgba(255,26,26,0.18) transparent}
+.le{margin-bottom:3px}.ts{color:rgba(255,26,26,0.18)}.tx{color:var(--r)}.sy{color:rgba(255,26,26,0.28);font-style:italic}.er{color:#ff0044}
+.rowb{display:flex;gap:8px;margin-top:8px}
+.sep{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--dim);font-size:8px;letter-spacing:3px}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:rgba(255,26,26,0.07)}
+
+/* ── HIDDEN DATE ── */
+.hidden-date{
+  position:fixed;bottom:4px;right:8px;
+  font-size:7px;letter-spacing:1px;
+  color:rgba(255,26,26,0.07);
+  z-index:2;pointer-events:none;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ══════════════════════════════════════════════════
+   REMOTE SCREEN — FULLSCREEN KEYBOARD
+══════════════════════════════════════════════════ */
+#s-remote{background:var(--bg);padding:0}
+.remote-bar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(6,0,0,0.97);border-bottom:1px solid rgba(255,26,26,0.14)}
+.r-logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:4px;color:var(--r);text-shadow:var(--glow)}
+.r-logo em{font-style:normal;color:var(--r2)}
+
+.kb-outer{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly;padding:3px;background:rgba(4,0,0,0.99)}
+.row{display:flex;gap:3px;flex:1;max-height:60px}
+
+/* THE KEY */
+.k{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(170deg,rgba(255,26,26,0.1) 0%,rgba(100,0,0,0.2) 100%);
+  border:1px solid rgba(255,26,26,0.32);border-bottom:3px solid rgba(255,26,26,0.62);
+  border-radius:6px;color:rgba(255,140,140,0.95);
+  font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;
+  cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+  position:relative;text-align:center;touch-action:manipulation;
+  transition:color 0.06s,border-color 0.06s,background 0.06s,transform 0.06s;
+  overflow:hidden;min-width:0;
+}
+.k::before{content:'';position:absolute;inset:0;border-radius:6px;background:radial-gradient(circle at 50% 50%,rgba(255,26,26,0.7) 0%,rgba(255,60,0,0.4) 35%,transparent 70%);opacity:0;pointer-events:none;transition:opacity 0.05s,transform 0.05s;transform:scale(0.2)}
+.k::after{content:'';position:absolute;width:200%;height:200%;top:-50%;left:-50%;border-radius:50%;border:2px solid rgba(255,26,26,0.95);box-shadow:0 0 10px rgba(255,26,26,0.7),0 0 20px rgba(255,60,0,0.4);opacity:0;transform:scale(0);pointer-events:none}
+.k.dn{background:linear-gradient(170deg,rgba(255,26,26,0.42) 0%,rgba(200,0,0,0.35) 100%) !important;border-color:var(--r) !important;border-bottom-width:1px !important;color:#fff !important;box-shadow:0 0 30px rgba(255,26,26,0.85),0 0 60px rgba(255,26,26,0.48),inset 0 0 24px rgba(255,26,26,0.35) !important;transform:translateY(2px) scale(0.955);text-shadow:0 0 10px #fff,0 0 28px var(--r),0 0 55px rgba(255,80,0,0.7)}
+.k.dn::before{opacity:1 !important;transform:scale(1.4) !important;transition:opacity 0.18s,transform 0.22s !important}
+.k.dn::after{animation:shockR 0.48s ease-out forwards !important}
+@keyframes shockR{0%{transform:scale(0);opacity:1;border-width:3px}50%{opacity:0.55;border-width:2px}100%{transform:scale(1.6);opacity:0;border-width:1px}}
+.k:not(.dn):active{border-color:rgba(255,26,26,0.6);background:rgba(255,26,26,0.1)}
+.k.fn{color:rgba(255,90,90,0.82);border-color:rgba(255,26,26,0.26);border-bottom-color:rgba(255,26,26,0.52)}
+.k.fn.dn{box-shadow:0 0 35px rgba(255,26,26,0.95),0 0 70px rgba(255,26,26,0.55),inset 0 0 28px rgba(255,26,26,0.42) !important}
+.k.mod-on{background:rgba(255,102,0,0.2) !important;border-color:var(--r2) !important;color:var(--r2) !important;box-shadow:0 0 18px rgba(255,102,0,0.55) !important;text-shadow:var(--glow2)}
+.k .top{font-size:7px;color:rgba(255,100,100,0.34);position:absolute;top:3px;right:4px;line-height:1}
+.k .main{font-size:15px;font-weight:700;line-height:1}
+.k.w16{flex:1.6}.k.w2{flex:2}.k.w25{flex:2.5}.k.w5{flex:5}.k.w6{flex:6}
+.row.media .k{font-size:16px}.row.nav .k{font-size:9px;letter-spacing:0}
+
+.qs-bar{flex-shrink:0;display:flex;gap:5px;align-items:stretch;padding:3px 4px;border-top:1px solid rgba(255,26,26,0.1);background:rgba(4,0,0,0.99)}
+.qs-bar textarea{flex:1;background:rgba(0,0,0,0.5);border:1px solid rgba(255,26,26,0.15);color:var(--r);font-family:'JetBrains Mono',monospace;font-size:12px;padding:7px;border-radius:4px;outline:none;resize:none;height:44px;line-height:1.4;-webkit-appearance:none}
+.qs-bar textarea::placeholder{color:var(--dim);font-size:10px}
+.qs-bar textarea:focus{border-color:rgba(255,26,26,0.38)}
+.qs-send{width:54px;background:rgba(255,26,26,0.08);border:1px solid rgba(255,26,26,0.3);color:var(--r);font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1px;border-radius:4px;cursor:pointer;flex-shrink:0;line-height:1.4;text-align:center;padding:4px 2px;-webkit-tap-highlight-color:transparent}
+.qs-send:active{background:rgba(255,26,26,0.22);transform:scale(0.96)}
+
+/* ── ARC FX ── */
+.arc-overlay{position:fixed;inset:0;z-index:9995;pointer-events:none;overflow:hidden}
+.arc-bolt{position:absolute;width:3px;background:linear-gradient(180deg,transparent,#ff1a1a,#ffaa00,#ff1a1a,transparent);box-shadow:0 0 6px #ff1a1a,0 0 14px rgba(255,26,26,0.6);border-radius:2px;transform-origin:top center;animation:boltFlash var(--dur,0.22s) ease-out forwards;filter:blur(0.4px)}
+@keyframes boltFlash{0%{opacity:1;transform:rotate(var(--ang)) scaleY(0)}35%{opacity:1;transform:rotate(var(--ang)) scaleY(1)}70%{opacity:0.55;transform:rotate(var(--ang)) scaleY(1) scaleX(0.5)}100%{opacity:0;transform:rotate(var(--ang)) scaleY(1.1) scaleX(0)}}
+.arc-flash{position:fixed;inset:0;z-index:9994;pointer-events:none;background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),rgba(255,26,26,0.22) 0%,rgba(255,60,0,0.08) 30%,transparent 65%);animation:flashFade 0.28s ease-out forwards}
+@keyframes flashFade{0%{opacity:1}100%{opacity:0}}
+.arc-spark{position:fixed;pointer-events:none;z-index:9996;width:3px;height:3px;border-radius:50%;background:var(--r);box-shadow:0 0 4px var(--r),0 0 8px var(--r2);animation:sparkOut var(--sd,0.38s) ease-out forwards}
+@keyframes sparkOut{0%{transform:translate(0,0) scale(1.5);opacity:1}100%{transform:translate(var(--sx),var(--sy)) scale(0);opacity:0}}
+
+/* ── TOAST ── */
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(12,0,0,0.97);border:1px solid var(--r);color:var(--r);font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;padding:9px 20px;border-radius:4px;z-index:99999;opacity:0;pointer-events:none;transition:opacity 0.22s;text-shadow:var(--glow);box-shadow:var(--glow);white-space:nowrap}
+.toast.show{opacity:1}.toast.err{border-color:var(--r3);color:var(--r3);text-shadow:var(--glow3);box-shadow:var(--glow3)}
+</style>
+</head>
+<body>
+
+<!-- ── HIDDEN DATE ─────────────────────────────────────── -->
+<div class="hidden-date">14.5.2010</div>
+
+<!-- ── ARC OVERLAY ────────────────────────────────────── -->
+<div class="arc-overlay" id="arc-overlay"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ══ A.M INTRO ══════════════════════════════════════════ -->
+<div id="intro">
+  <canvas id="intro-canvas"></canvas>
+  <div class="intro-scanlines"></div>
+  <div class="intro-vignette"></div>
+
+  <div class="am-wrap" id="am-wrap">
+    <div class="am-text" id="am-text">
+      <span class="layer-glitch1" aria-hidden="true">A.M</span>
+      <span class="layer-glitch2" aria-hidden="true">A.M</span>
+      <div class="am-glitch-bar"></div>
+      <span class="layer-main">A.M</span>
+    </div>
+    <div class="am-sub">CREATIONS</div>
+    <div class="am-tagline">NEXUS REMOTE SYSTEM</div>
+    <div class="am-bar-wrap"><div class="am-bar"></div></div>
+  </div>
+
+  <div class="intro-lines">
+    <div class="il" id="il0">▸ INITIALIZING NEXUS ENGINE...</div>
+    <div class="il" id="il1">▸ LOADING P2P CORE...</div>
+    <div class="il" id="il2">▸ IDENTITY MODULE ACTIVE</div>
+    <div class="il" id="il3">▸ ALL SYSTEMS NOMINAL — READY</div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════ -->
+<div class="bg-grid"></div><div class="bg-radial"></div><div class="bg-scan"></div>
+<div id="app">
+
+  <!-- MAIN -->
+  <div class="screen on" id="s-main">
+    <div class="hdr">
+      <div class="logo">NEX<em>U</em>S</div>
+      <div class="sub">A.M CREATIONS &nbsp;·&nbsp; P2P REMOTE &nbsp;·&nbsp; V7.0</div>
+      <div class="hdr-line"></div>
+    </div>
+    <div class="scroll-inner">
+      <!-- Identity -->
+      <div class="panel">
+        <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+        <div class="ptag">// YOUR IDENTITY</div>
+        <div style="height:12px"></div>
+        <div class="id-label">DEVICE NAME</div>
+        <input class="field-name" id="id-name-input" placeholder="Enter your name / device label" maxlength="20" autocomplete="off">
+        <div class="id-label" style="margin-top:8px">NEXUS ID <span class="id-badge" id="id-badge">NEW</span></div>
+        <div class="id-value" id="id-val">--</div>
+        <div style="font-size:8px;color:var(--dim);margin-top:5px;letter-spacing:2px" id="id-hint">Tap to set your name</div>
+      </div>
+      <!-- Role -->
+      <div class="panel">
+        <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+        <div class="ptag">// SELECT ROLE</div>
+        <div style="height:12px"></div>
+        <div class="mrow">
+          <button class="mbtn" id="b-host" onclick="pickRole('host')"><span class="mi">⬡</span>HOST<div class="mdesc">Receives input</div></button>
+          <button class="mbtn" id="b-remote" onclick="pickRole('remote')"><span class="mi">◈</span>REMOTE<div class="mdesc">Sends keystrokes</div></button>
+        </div>
+      </div>
+      <!-- HOST SETUP -->
+      <div id="host-setup" style="display:none">
+        <div class="panel">
+          <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+          <div class="ptag">// HOST CHANNEL</div>
+          <div style="height:12px"></div>
+          <div style="font-size:9px;letter-spacing:3px;color:var(--dim);text-align:center;margin-bottom:4px">ROOM CODE</div>
+          <div class="code-big" id="host-code">----</div>
+          <div class="code-hint">Share with remote device</div>
+          <div style="height:12px"></div>
+          <button class="btn btn-full" id="host-init-btn" onclick="startHost()">⬡ &nbsp;INITIALIZE HOST</button>
+        </div>
+        <div class="panel">
+          <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+          <div class="ptag">// KNOWN REMOTES</div>
+          <div style="height:12px"></div>
+          <div id="known-remotes"></div>
+        </div>
+      </div>
+      <!-- REMOTE SETUP -->
+      <div id="remote-setup" style="display:none">
+        <div class="panel">
+          <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+          <div class="ptag">// CONNECT TO HOST</div>
+          <div style="height:12px"></div>
+          <input class="field" id="code-in" maxlength="4" placeholder="XXXX" autocomplete="off" spellcheck="false" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+          <div class="crow"><button class="btn btn-full" onclick="connectRemote()">◈ &nbsp;LINK TO HOST</button></div>
+          <div style="font-size:9px;color:var(--dim);letter-spacing:2px;margin-top:8px;text-align:center">Enter 4-character code from host</div>
+        </div>
+        <div class="panel">
+          <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+          <div class="ptag">// KNOWN HOSTS</div>
+          <div style="height:12px"></div>
+          <div id="known-hosts"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST ACTIVE -->
+  <div class="screen" id="s-host">
+    <div class="scroll-inner" style="padding-top:10px">
+      <div class="panel">
+        <div class="cc tl"></div><div class="cc tr"></div><div class="cc bl"></div><div class="cc br"></div>
+        <div class="ptag">// HOST TERMINAL</div>
+        <div style="height:12px"></div>
+        <div class="status"><div class="dot waiting" id="h-dot"></div><span id="h-stxt">AWAITING REMOTE...</span><span class="scode" id="h-code-sm"></span></div>
+        <div style="font-size:8px;letter-spacing:3px;color:var(--dim);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
+          RECEIVED INPUT
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm btn-o" onclick="copyText()">COPY</button>
+            <button class="btn btn-sm btn-d" onclick="clearBuf()">CLEAR</button>
+          </div>
+        </div>
+        <div class="recv" id="h-recv"><span class="cursor"></span></div>
+        <div class="log" id="h-log"></div>
+        <div class="rowb"><button class="btn btn-full btn-d" style="margin-top:8px" onclick="disc('host')">◈ &nbsp;DISCONNECT</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REMOTE FULLSCREEN KB -->
+  <div class="screen" id="s-remote">
+    <div class="remote-bar">
+      <span class="r-logo">NEX<em>U</em>S</span>
+      <div class="dot waiting" id="r-dot" style="margin-left:8px"></div>
+      <span id="r-stxt" style="font-size:9px;letter-spacing:2px;margin-left:5px;color:var(--dim)">CONNECTING...</span>
+      <span id="r-name-lbl" style="margin-left:auto;font-size:8px;color:var(--dim)"></span>
+      <button class="btn btn-d btn-sm" style="margin-left:8px;padding:4px 9px;font-size:9px;letter-spacing:1px" onclick="disc('remote')">✕ EXIT</button>
+    </div>
+    <div class="kb-outer">
+      <div class="row media">
+        <div class="k fn" data-k="Escape" data-d="ESC"><span class="main" style="font-size:10px">ESC</span></div>
+        <div class="k fn" data-k="F5" data-d="F5"><span class="main" style="font-size:10px">F5</span></div>
+        <div class="k fn" data-k="MediaPrevTrack" data-d="⏮"><span class="main">⏮</span></div>
+        <div class="k fn" data-k="MediaPlayPause" data-d="⏯"><span class="main">⏯</span></div>
+        <div class="k fn" data-k="MediaNextTrack" data-d="⏭"><span class="main">⏭</span></div>
+        <div class="k fn" data-k="VolumeDown" data-d="🔉"><span class="main">🔉</span></div>
+        <div class="k fn" data-k="VolumeUp" data-d="🔊"><span class="main">🔊</span></div>
+        <div class="k fn" data-k="VolumeMute" data-d="🔇"><span class="main">🔇</span></div>
+      </div>
+      <div class="row nav">
+        <div class="k fn" data-k="Tab" data-d="TAB"><span class="main">TAB</span></div>
+        <div class="k fn" data-k="Home" data-d="HOME"><span class="main">HOME</span></div>
+        <div class="k fn" data-k="End" data-d="END"><span class="main">END</span></div>
+        <div class="k fn" data-k="PageUp" data-d="PgUp"><span class="main">PgUp</span></div>
+        <div class="k fn" data-k="PageDown" data-d="PgDn"><span class="main">PgDn</span></div>
+        <div class="k fn" data-k="Delete" data-d="DEL"><span class="main">DEL</span></div>
+        <div class="k fn" data-k="ArrowLeft" data-d="◀"><span class="main">◀</span></div>
+        <div class="k fn" data-k="ArrowUp" data-d="▲"><span class="main">▲</span></div>
+        <div class="k fn" data-k="ArrowDown" data-d="▼"><span class="main">▼</span></div>
+        <div class="k fn" data-k="ArrowRight" data-d="▶"><span class="main">▶</span></div>
+      </div>
+      <div class="row">
+        <div class="k" data-k="`" data-sh="~"><span class="top">~</span><span class="main">`</span></div>
+        <div class="k" data-k="1" data-sh="!"><span class="top">!</span><span class="main">1</span></div>
+        <div class="k" data-k="2" data-sh="@"><span class="top">@</span><span class="main">2</span></div>
+        <div class="k" data-k="3" data-sh="#"><span class="top">#</span><span class="main">3</span></div>
+        <div class="k" data-k="4" data-sh="$"><span class="top">$</span><span class="main">4</span></div>
+        <div class="k" data-k="5" data-sh="%"><span class="top">%</span><span class="main">5</span></div>
+        <div class="k" data-k="6" data-sh="^"><span class="top">^</span><span class="main">6</span></div>
+        <div class="k" data-k="7" data-sh="&amp;"><span class="top">&amp;</span><span class="main">7</span></div>
+        <div class="k" data-k="8" data-sh="*"><span class="top">*</span><span class="main">8</span></div>
+        <div class="k" data-k="9" data-sh="("><span class="top">(</span><span class="main">9</span></div>
+        <div class="k" data-k="0" data-sh=")"><span class="top">)</span><span class="main">0</span></div>
+        <div class="k" data-k="-" data-sh="_"><span class="top">_</span><span class="main">-</span></div>
+        <div class="k" data-k="=" data-sh="+"><span class="top">+</span><span class="main">=</span></div>
+        <div class="k fn w16" data-k="Backspace" data-d="⌫"><span class="main">⌫</span></div>
+      </div>
+      <div class="row">
+        <div class="k fn w16" data-k="Tab" data-d="TAB"><span class="main" style="font-size:10px">TAB</span></div>
+        <div class="k" data-k="q"><span class="main">Q</span></div><div class="k" data-k="w"><span class="main">W</span></div>
+        <div class="k" data-k="e"><span class="main">E</span></div><div class="k" data-k="r"><span class="main">R</span></div>
+        <div class="k" data-k="t"><span class="main">T</span></div><div class="k" data-k="y"><span class="main">Y</span></div>
+        <div class="k" data-k="u"><span class="main">U</span></div><div class="k" data-k="i"><span class="main">I</span></div>
+        <div class="k" data-k="o"><span class="main">O</span></div><div class="k" data-k="p"><span class="main">P</span></div>
+        <div class="k" data-k="[" data-sh="{"><span class="top">{</span><span class="main">[</span></div>
+        <div class="k" data-k="]" data-sh="}"><span class="top">}</span><span class="main">]</span></div>
+        <div class="k fn w2" data-k="Enter" data-d="↵ ENTER"><span class="main" style="font-size:10px">↵ ENTER</span></div>
+      </div>
+      <div class="row">
+        <div class="k fn w2" id="k-caps" data-k="CapsLock" data-d="CAPS"><span class="main" style="font-size:10px">CAPS</span></div>
+        <div class="k" data-k="a"><span class="main">A</span></div><div class="k" data-k="s"><span class="main">S</span></div>
+        <div class="k" data-k="d"><span class="main">D</span></div><div class="k" data-k="f"><span class="main">F</span></div>
+        <div class="k" data-k="g"><span class="main">G</span></div><div class="k" data-k="h"><span class="main">H</span></div>
+        <div class="k" data-k="j"><span class="main">J</span></div><div class="k" data-k="k"><span class="main">K</span></div>
+        <div class="k" data-k="l"><span class="main">L</span></div>
+        <div class="k" data-k=";" data-sh=":"><span class="top">:</span><span class="main">;</span></div>
+        <div class="k" data-k="'" data-sh='"'><span class="top">"</span><span class="main">'</span></div>
+        <div class="k" data-k="\" data-sh="|"><span class="top">|</span><span class="main">\</span></div>
+      </div>
+      <div class="row">
+        <div class="k fn w25" id="k-shift-l" data-k="Shift" data-d="⇧ SHIFT"><span class="main" style="font-size:10px">⇧ SHIFT</span></div>
+        <div class="k" data-k="z"><span class="main">Z</span></div><div class="k" data-k="x"><span class="main">X</span></div>
+        <div class="k" data-k="c"><span class="main">C</span></div><div class="k" data-k="v"><span class="main">V</span></div>
+        <div class="k" data-k="b"><span class="main">B</span></div><div class="k" data-k="n"><span class="main">N</span></div>
+        <div class="k" data-k="m"><span class="main">M</span></div>
+        <div class="k" data-k="," data-sh="<"><span class="top">&lt;</span><span class="main">,</span></div>
+        <div class="k" data-k="." data-sh=">"><span class="top">&gt;</span><span class="main">.</span></div>
+        <div class="k" data-k="/" data-sh="?"><span class="top">?</span><span class="main">/</span></div>
+        <div class="k fn w25" id="k-shift-r" data-k="Shift" data-d="⇧ SHIFT"><span class="main" style="font-size:10px">⇧ SHIFT</span></div>
+      </div>
+      <div class="row">
+        <div class="k fn w16" id="k-ctrl" data-k="Control" data-d="CTRL"><span class="main" style="font-size:10px">CTRL</span></div>
+        <div class="k fn w16" id="k-alt" data-k="Alt" data-d="ALT"><span class="main" style="font-size:10px">ALT</span></div>
+        <div class="k w6" data-k=" " data-d="SPACE"><span class="main" style="font-size:10px;letter-spacing:2px">SPACE</span></div>
+        <div class="k fn w16" data-k="Meta" data-d="WIN"><span class="main" style="font-size:10px">WIN</span></div>
+        <div class="k fn w16" data-k="ContextMenu" data-d="MENU"><span class="main" style="font-size:9px">MENU</span></div>
+      </div>
+    </div>
+    <div class="qs-bar">
+      <textarea id="r-text" placeholder="Quick send... Ctrl+Enter to transmit"></textarea>
+      <button class="qs-send" onclick="sendText()">⇥<br>SEND</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+// PWA: MANIFEST + SERVICE WORKER (full offline cache)
+// ════════════════════════════════════════════════════════
+(function(){
+  // Generate app icon
+  function genIcon(size){
+    const c=document.createElement('canvas');c.width=size;c.height=size;
+    const ctx=c.getContext('2d');
+    const r=size*0.18;
+    ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(size-r,0);ctx.quadraticCurveTo(size,0,size,r);ctx.lineTo(size,size-r);ctx.quadraticCurveTo(size,size,size-r,size);ctx.lineTo(r,size);ctx.quadraticCurveTo(0,size,0,size-r);ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();
+    ctx.fillStyle='#060000';ctx.fill();
+    const g=ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size*0.6);g.addColorStop(0,'rgba(255,26,26,0.22)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(255,26,26,0.55)';ctx.lineWidth=size*0.014;ctx.stroke();
+    ctx.fillStyle='#ff1a1a';ctx.shadowColor='#ff1a1a';ctx.shadowBlur=size*0.1;
+    ctx.font=`900 ${size*0.35}px Orbitron,Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('NX',size/2,size*0.46);
+    ctx.fillStyle='rgba(255,102,0,0.75)';ctx.shadowBlur=0;ctx.font=`700 ${size*0.1}px Orbitron,Arial`;ctx.fillText('A.M',size/2,size*0.72);
+    return c.toDataURL('image/png');
+  }
+
+  const icon192=genIcon(192), icon512=genIcon(512);
+
+  // Manifest
+  const mf={name:"NEXUS REMOTE — A.M Creations",short_name:"NEXUS",description:"P2P wireless keyboard remote",start_url:"./",display:"fullscreen",orientation:"portrait",background_color:"#060000",theme_color:"#ff1a1a",icons:[{src:icon192,sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:icon512,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+  const mfBlob=new Blob([JSON.stringify(mf)],{type:'application/json'});
+  const mfUrl=URL.createObjectURL(mfBlob);
+  const link=document.createElement('link');link.rel='manifest';link.href=mfUrl;document.head.appendChild(link);
+  // Apple touch icon
+  const ai=document.createElement('link');ai.rel='apple-touch-icon';ai.href=icon192;document.head.appendChild(ai);
+
+  // Service Worker — caches the full page HTML for offline
+  if('serviceWorker' in navigator){
+    const sw=`
+const CACHE='nexus-v7';
+self.addEventListener('install',e=>{
+  e.waitUntil(
+    caches.open(CACHE).then(c=>{
+      return c.add(new Request(self.location.href,{cache:'reload'}));
+    }).then(()=>self.skipWaiting())
+  );
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',e=>{
+  if(e.request.mode==='navigate'){
+    e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+    return;
+  }
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{
+    if(resp&&resp.status===200&&resp.type==='basic'){
+      const clone=resp.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,clone));
+    }
+    return resp;
+  }).catch(()=>new Response('',{status:408}))));
+});`;
+    const swBlob=new Blob([sw],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+  }
+})();
+
+// ════════════════════════════════════════════════════════
+// INTRO: PARTICLE CANVAS + SOUND (Web Audio API)
+// ════════════════════════════════════════════════════════
+const introCanvas=document.getElementById('intro-canvas');
+const ictx=introCanvas.getContext('2d');
+let particles=[], introAnimId=null;
+
+function resizeCanvas(){introCanvas.width=window.innerWidth;introCanvas.height=window.innerHeight;}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+
+// Particle class
+class Particle{
+  constructor(cx,cy,phase){
+    this.phase=phase; // 'orbit' or 'explode'
+    this.cx=cx;this.cy=cy;
+    this.angle=Math.random()*Math.PI*2;
+    this.orbitR=20+Math.random()*80;
+    this.speed=0.02+Math.random()*0.04;
+    this.size=1+Math.random()*2.5;
+    this.color=`hsl(${Math.random()*30}deg,100%,${50+Math.random()*40}%)`;
+    this.alpha=0.6+Math.random()*0.4;
+    // explode direction
+    this.vx=(Math.random()-0.5)*12;
+    this.vy=(Math.random()-0.5)*12;
+    this.gravity=0.08+Math.random()*0.06;
+    this.life=1;this.decay=0.008+Math.random()*0.012;
+    this.x=cx+Math.cos(this.angle)*this.orbitR;
+    this.y=cy+Math.sin(this.angle)*this.orbitR;
+    this.trail=[];
+  }
+  updateOrbit(){
+    this.angle+=this.speed;
+    const nx=this.cx+Math.cos(this.angle)*this.orbitR;
+    const ny=this.cy+Math.sin(this.angle)*this.orbitR;
+    this.trail.push({x:this.x,y:this.y,a:this.alpha});
+    if(this.trail.length>8)this.trail.shift();
+    this.x=nx;this.y=ny;
+  }
+  updateExplode(){
+    this.trail.push({x:this.x,y:this.y,a:this.life*this.alpha});
+    if(this.trail.length>12)this.trail.shift();
+    this.vx*=0.97;this.vy*=0.97;
+    this.vy+=this.gravity;
+    this.x+=this.vx;this.y+=this.vy;
+    this.life-=this.decay;
+  }
+  draw(ctx){
+    // Draw trail
+    for(let i=0;i<this.trail.length;i++){
+      const t=this.trail[i];
+      const prog=i/this.trail.length;
+      ctx.beginPath();
+      ctx.arc(t.x,t.y,this.size*prog*0.7,0,Math.PI*2);
+      ctx.fillStyle=this.color.replace(')',`,${t.a*prog*0.5})`).replace('hsl','hsla');
+      ctx.fill();
+    }
+    // Draw head
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    const a=this.phase==='explode'?this.life*this.alpha:this.alpha;
+    ctx.fillStyle=this.color.replace(')',`,${a})`).replace('hsl','hsla');
+    ctx.shadowColor=this.color;ctx.shadowBlur=this.size*4;
+    ctx.fill();ctx.shadowBlur=0;
+  }
+}
+
+let introPhase='orbit', introTimer=0;
+let cx,cy;
+
+function initParticles(){
+  cx=introCanvas.width/2; cy=introCanvas.height/2;
+  particles=[];
+  for(let i=0;i<180;i++) particles.push(new Particle(cx,cy,'orbit'));
+}
+
+function explodeParticles(){
+  introPhase='explode';
+  particles.forEach(p=>{p.phase='explode';p.vx=(p.x-cx)/8+(Math.random()-0.5)*8;p.vy=(p.y-cy)/8+(Math.random()-0.5)*8;});
+  // Add extra burst particles
+  for(let i=0;i<120;i++){
+    const p=new Particle(cx,cy,'explode');
+    p.phase='explode';p.x=cx;p.y=cy;
+    p.vx=(Math.random()-0.5)*18;p.vy=(Math.random()-0.5)*18;
+    p.size=1+Math.random()*3;
+    particles.push(p);
+  }
+}
+
+function drawIntroFrame(t){
+  ictx.clearRect(0,0,introCanvas.width,introCanvas.height);
+  introTimer++;
+
+  if(introPhase==='orbit'){
+    // Draw orbit rings
+    for(let r=0;r<3;r++){
+      const rr=60+r*50;
+      ictx.beginPath();ictx.arc(cx,cy,rr,0,Math.PI*2);
+      ictx.strokeStyle=`rgba(255,26,26,${0.04+r*0.02})`;ictx.lineWidth=1;ictx.stroke();
+    }
+    particles.forEach(p=>{p.updateOrbit();p.draw(ictx);});
+  }else{
+    particles=particles.filter(p=>p.life>0);
+    particles.forEach(p=>{p.updateExplode();p.draw(ictx);});
+  }
+
+  introAnimId=requestAnimationFrame(drawIntroFrame);
+}
+
+// Web Audio intro sound
+function playIntroSound(){
+  try{
+    const ac=new(window.AudioContext||window.webkitAudioContext)();
+
+    // Deep cinematic rumble
+    const buf=ac.createBuffer(1,ac.sampleRate*0.4,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2)*0.5;
+    const rumble=ac.createBufferSource();rumble.buffer=buf;
+    const rGain=ac.createGain();rGain.gain.setValueAtTime(0.3,ac.currentTime);rGain.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.4);
+    rumble.connect(rGain);rGain.connect(ac.destination);rumble.start(ac.currentTime);
+
+    // Rising tone
+    function tone(freq,start,dur,vol,type='sine'){
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type=type;o.frequency.setValueAtTime(freq*0.5,ac.currentTime+start);
+      o.frequency.exponentialRampToValueAtTime(freq,ac.currentTime+start+dur*0.6);
+      g.gain.setValueAtTime(0,ac.currentTime+start);
+      g.gain.linearRampToValueAtTime(vol,ac.currentTime+start+0.08);
+      g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+start+dur);
+      o.connect(g);g.connect(ac.destination);
+      o.start(ac.currentTime+start);o.stop(ac.currentTime+start+dur+0.05);
+    }
+
+    // Cinematic sweep
+    tone(80,0,0.6,0.2,'sawtooth');
+    tone(160,0.1,0.5,0.15,'sine');
+    tone(40,0.0,0.8,0.25,'sine');
+
+    // Impact HIT at ~1s (when logo appears)
+    setTimeout(()=>{
+      try{
+        const ac2=new(window.AudioContext||window.webkitAudioContext)();
+        // Impact thud
+        const buf2=ac2.createBuffer(1,ac2.sampleRate*0.3,ac2.sampleRate);
+        const d2=buf2.getChannelData(0);
+        for(let i=0;i<d2.length;i++) d2[i]=(Math.random()*2-1)*Math.pow(1-i/d2.length,3)*0.8;
+        const hit=ac2.createBufferSource();hit.buffer=buf2;
+        const hg=ac2.createGain();hg.gain.setValueAtTime(0.7,ac2.currentTime);hg.gain.exponentialRampToValueAtTime(0.001,ac2.currentTime+0.3);
+        hit.connect(hg);hg.connect(ac2.destination);hit.start();
+        // High freq crack
+        tone2(ac2,3000,0,0.12,0.15,'square');
+        tone2(ac2,1500,0.02,0.1,0.1,'sawtooth');
+        // Sub boom
+        tone2(ac2,55,0,0.5,0.4,'sine');
+        tone2(ac2,110,0,0.3,0.25,'sine');
+        function tone2(ac,freq,st,dur,vol,type='sine'){
+          const o=ac.createOscillator(),g=ac.createGain();
+          o.type=type;o.frequency.value=freq;
+          g.gain.setValueAtTime(vol,ac.currentTime+st);
+          g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+st+dur);
+          o.connect(g);g.connect(ac.destination);
+          o.start(ac.currentTime+st);o.stop(ac.currentTime+st+dur+0.05);
+        }
+      }catch(e){}
+    },900);
+
+    // Glitch burst at ~1.2s
+    setTimeout(()=>{
+      try{
+        const ac3=new(window.AudioContext||window.webkitAudioContext)();
+        for(let i=0;i<5;i++){
+          const o=ac3.createOscillator(),g=ac3.createGain();
+          o.type='square';o.frequency.value=800+Math.random()*2000;
+          g.gain.setValueAtTime(0.06,ac3.currentTime+i*0.04);
+          g.gain.exponentialRampToValueAtTime(0.001,ac3.currentTime+i*0.04+0.06);
+          o.connect(g);g.connect(ac3.destination);
+          o.start(ac3.currentTime+i*0.04);o.stop(ac3.currentTime+i*0.04+0.07);
+        }
+      }catch(e){}
+    },1150);
+
+    // Explosion burst when particles explode at ~2s
+    setTimeout(()=>{
+      try{
+        const ac4=new(window.AudioContext||window.webkitAudioContext)();
+        const buf4=ac4.createBuffer(1,ac4.sampleRate*0.6,ac4.sampleRate);
+        const d4=buf4.getChannelData(0);
+        for(let i=0;i<d4.length;i++) d4[i]=(Math.random()*2-1)*Math.pow(1-i/d4.length,1.5)*0.9;
+        const exp=ac4.createBufferSource();exp.buffer=buf4;
+        const eg=ac4.createGain();eg.gain.setValueAtTime(0.8,ac4.currentTime);eg.gain.exponentialRampToValueAtTime(0.001,ac4.currentTime+0.6);
+        const bf=ac4.createBiquadFilter();bf.type='lowpass';bf.frequency.value=800;
+        exp.connect(bf);bf.connect(eg);eg.connect(ac4.destination);exp.start();
+      }catch(e){}
+    },1900);
+
+    // Final power-up hum
+    setTimeout(()=>{
+      try{
+        const ac5=new(window.AudioContext||window.webkitAudioContext)();
+        const o=ac5.createOscillator(),g=ac5.createGain();
+        o.type='sine';o.frequency.setValueAtTime(220,ac5.currentTime);
+        o.frequency.exponentialRampToValueAtTime(440,ac5.currentTime+0.5);
+        g.gain.setValueAtTime(0.12,ac5.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac5.currentTime+0.8);
+        o.connect(g);g.connect(ac5.destination);o.start();o.stop(ac5.currentTime+0.9);
+      }catch(e){}
+    },2600);
+
+  }catch(e){}
+}
+
+// Explosion rings DOM
+function fireExplosionRings(){
+  const wrap=document.getElementById('am-wrap');
+  const colors=['#ff1a1a','#ff6600','#ffffff','#ff0044','#ffcc00'];
+  colors.forEach((c,i)=>{
+    const ring=document.createElement('div');
+    ring.className='exp-ring';
+    ring.style.cssText=`--rc:${c};--rs:${3+i*1.2};--rd:${0.7+i*0.15}s;--bw:${3-i*0.4}px;width:60px;height:60px;animation-delay:${i*80}ms`;
+    document.getElementById('intro').appendChild(ring);
+    setTimeout(()=>ring.remove(),(0.7+i*0.15)*1000+200);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// INTRO SEQUENCE
+// ════════════════════════════════════════════════════════
+function runIntro(){
+  initParticles();
+  introAnimId=requestAnimationFrame(drawIntroFrame);
+
+  // Sound fires on first user interaction (or immediately if allowed)
+  const startSound=()=>{playIntroSound();document.removeEventListener('touchstart',startSound);document.removeEventListener('click',startSound);};
+  // Try immediate
+  try{playIntroSound();}catch(e){document.addEventListener('touchstart',startSound,{once:true});document.addEventListener('click',startSound,{once:true});}
+
+  // Boot lines
+  [[1900,'il0'],[2300,'il1'],[2650,'il2'],[2950,'il3']].forEach(([d,id])=>setTimeout(()=>document.getElementById(id)?.classList.add('show'),d));
+
+  // Particle explode at 1.9s
+  setTimeout(()=>{explodeParticles();fireExplosionRings();},1900);
+
+  // Hide intro at 4.2s
+  setTimeout(()=>{
+    cancelAnimationFrame(introAnimId);
+    document.getElementById('intro').classList.add('hide');
+    setTimeout(()=>{document.getElementById('intro').style.display='none';loadIdentity();},650);
+  },4200);
+}
+
+// ════════════════════════════════════════════════════════
+// STORAGE KEYS
+// ════════════════════════════════════════════════════════
+const LS_ID='nx_id',LS_NAME='nx_name',LS_HOSTS='nx_hosts',LS_REMOTES='nx_remotes',LS_ROLE='nx_last_role';
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let peer=null,conn=null,role=null,roomCode=null;
+let hostBuf='',shiftOn=false,ctrlOn=false,altOn=false,connected=false;
+let myId=null,myName='',kbReady=false;
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const now=()=>{const d=new Date();return`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`};
+
+// ════════════════════════════════════════════════════════
+// IDENTITY
+// ════════════════════════════════════════════════════════
+function genId(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let id='NX-';for(let i=0;i<8;i++)id+=c[Math.floor(Math.random()*c.length)];return id;}
+function loadIdentity(){
+  myId=localStorage.getItem(LS_ID)||null;myName=localStorage.getItem(LS_NAME)||'';
+  if(!myId){myId=genId();localStorage.setItem(LS_ID,myId);}
+  $('id-name-input').value=myName;$('id-val').textContent=myId;
+  $('id-hint').textContent=myName?`Saved as "${myName}"`:'Tap to set your name';
+  $('id-badge').textContent=(localStorage.getItem(LS_HOSTS)||localStorage.getItem(LS_REMOTES))?'RETURNING':'NEW';
+  const lr=localStorage.getItem(LS_ROLE);if(lr)pickRole(lr);
+}
+function saveName(){myName=($('id-name-input').value.trim())||'Device';localStorage.setItem(LS_NAME,myName);$('id-hint').textContent=`Saved as "${myName}"`;}
+$('id-name-input').addEventListener('blur',saveName);
+$('id-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
+
+// ════════════════════════════════════════════════════════
+// KNOWN PEERS
+// ════════════════════════════════════════════════════════
+function getHosts(){try{return JSON.parse(localStorage.getItem(LS_HOSTS)||'[]')}catch(e){return[]}}
+function getRemotes(){try{return JSON.parse(localStorage.getItem(LS_REMOTES)||'[]')}catch(e){return[]}}
+function saveHost(id,name,code){let l=getHosts().filter(h=>h.id!==id);l.unshift({id,name:name||'Host',code,last:Date.now()});localStorage.setItem(LS_HOSTS,JSON.stringify(l.slice(0,10)));}
+function saveRemote(id,name){let l=getRemotes().filter(r=>r.id!==id);l.unshift({id,name:name||'Remote',last:Date.now()});localStorage.setItem(LS_REMOTES,JSON.stringify(l.slice(0,10)));}
+function ago(ts){const d=Date.now()-ts;if(d<60000)return'just now';if(d<3600000)return Math.floor(d/60000)+'m ago';if(d<86400000)return Math.floor(d/3600000)+'h ago';return Math.floor(d/86400000)+'d ago';}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escA(s){return String(s).replace(/'/g,'&#39;')}
+function renderHosts(){const el=$('known-hosts');if(!el)return;const l=getHosts();if(!l.length){el.innerHTML='<div class="no-peers">No known hosts yet</div>';return;}el.innerHTML=l.map(h=>`<div class="peer-item" onclick="quickConnect('${h.code}','${escA(h.id)}','${escA(h.name)}')"><div class="p-dot h"></div><div style="flex:1"><div class="pi-name">${escH(h.name)}</div><div class="pi-id">${h.id}</div></div><div style="text-align:right"><div class="pi-last">${ago(h.last)}</div><div class="pi-connect">CONNECT ▶</div></div></div>`).join('');}
+function renderRemotes(){const el=$('known-remotes');if(!el)return;const l=getRemotes();if(!l.length){el.innerHTML='<div class="no-peers">No known remotes yet</div>';return;}el.innerHTML=l.map(r=>`<div class="peer-item"><div class="p-dot re"></div><div style="flex:1"><div class="pi-name">${escH(r.name)}</div><div class="pi-id">${r.id}</div></div><div style="text-align:right"><div class="pi-last">${ago(r.last)}</div></div></div>`).join('');}
+function quickConnect(code,id,name){$('code-in').value=code;toast('AUTO-LINKING TO '+name.toUpperCase());setTimeout(connectRemote,300);}
+
+// ════════════════════════════════════════════════════════
+// SCREENS + ROLES
+// ════════════════════════════════════════════════════════
+function setScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+function pickRole(r){role=r;localStorage.setItem(LS_ROLE,r);$('b-host').className='mbtn'+(r==='host'?' sel':'');$('b-remote').className='mbtn'+(r==='remote'?' sel2':'');$('host-setup').style.display=r==='host'?'block':'none';$('remote-setup').style.display=r==='remote'?'block':'none';if(r==='host'){roomCode=genCode();$('host-code').textContent=roomCode;renderRemotes();}if(r==='remote'){renderHosts();}}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+
+// ════════════════════════════════════════════════════════
+// HOST
+// ════════════════════════════════════════════════════════
+function startHost(){
+  saveName();$('host-init-btn').textContent='INITIALIZING...';$('host-init-btn').disabled=true;
+  peer=new Peer('nexus-'+roomCode,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  peer.on('open',()=>{setScreen('s-host');$('h-code-sm').textContent=roomCode;toast('HOST LIVE · '+roomCode);setHS('waiting','AWAITING REMOTE...');});
+  peer.on('connection',c=>{conn=c;setupConn('host');});
+  peer.on('error',err=>{const m=err.message||String(err);if(m.includes('unavailable')||m.includes('taken')){roomCode=genCode();$('host-code').textContent=roomCode;peer.destroy();peer=null;$('host-init-btn').textContent='⬡ INITIALIZE HOST';$('host-init-btn').disabled=false;toast('CODE TAKEN — NEW: '+roomCode);}else{toast('ERROR',true);$('host-init-btn').textContent='⬡ INITIALIZE HOST';$('host-init-btn').disabled=false;}});
+}
+function setHS(s,t){const d=$('h-dot'),x=$('h-stxt');d.className='dot '+(s==='waiting'?'waiting':s==='live'?'live':'err');x.textContent=t;x.style.color=s==='live'?'#ff7700':'';}
+
+// ════════════════════════════════════════════════════════
+// REMOTE
+// ════════════════════════════════════════════════════════
+function connectRemote(){
+  saveName();const code=$('code-in').value.trim().toUpperCase();
+  if(code.length!==4){toast('ENTER 4-CHAR CODE',true);return;}
+  roomCode=code;
+  peer=new Peer(undefined,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}});
+  peer.on('open',()=>{$('r-name-lbl').textContent=myName||myId.substring(0,8);setScreen('s-remote');setRS('waiting','LINKING...');if(!kbReady){initKeyboard();kbReady=true;}conn=peer.connect('nexus-'+code,{reliable:true});setupConn('remote');});
+  peer.on('error',err=>{const m=err.message||String(err);toast(m.includes('peer-unavailable')?'HOST NOT FOUND':'ERROR',true);setRS('err','FAILED');});
+}
+function setRS(s,t){const d=$('r-dot'),x=$('r-stxt');d.className='dot '+(s==='waiting'?'waiting':s==='live'?'live':'err');x.textContent=t;x.style.color=s==='live'?'#ff7700':'';}
+
+// ════════════════════════════════════════════════════════
+// CONNECTION
+// ════════════════════════════════════════════════════════
+function setupConn(r){
+  if(!conn)return;
+  conn.on('open',()=>{connected=true;if(r==='host'){setHS('live','REMOTE CONNECTED');toast('REMOTE LINKED');}else{setRS('live','LINKED · READY');toast('LINKED · '+roomCode);conn.send({type:'identity',id:myId,name:myName||'Remote'});}});
+  conn.on('data',data=>{if(r==='host')onHostData(data);else onRemoteData(data);});
+  conn.on('close',()=>{connected=false;if(r==='host'){setHS('waiting','AWAITING REMOTE...');toast('REMOTE DISCONNECTED',true);}else{setRS('err','DISCONNECTED');}});
+  conn.on('error',()=>{});
+}
+function onHostData(d){
+  if(d.type==='identity'){saveRemote(d.id,d.name);addLog('h-log',`Remote: ${d.name}`, 'sy');conn.send({type:'host-identity',id:myId,name:myName||'Host',code:roomCode});return;}
+  if(d.type==='key'){const k=d.key,ch=d.char||'';if(k==='Backspace')hostBuf=hostBuf.slice(0,-1);else if(k==='Enter')hostBuf+='\n';else if(k==='Tab')hostBuf+='\t';else if(ch.length===1)hostBuf+=ch;updateRecv();addLog('h-log','KEY → '+(d.d||k),'tx');}
+  else if(d.type==='text'){hostBuf+=d.v;updateRecv();addLog('h-log','TEXT','tx');}
+}
+function onRemoteData(d){if(d.type==='host-identity'){saveHost(d.id,d.name,d.code||roomCode);}}
+function updateRecv(){$('h-recv').innerHTML=esc(hostBuf)+'<span class="cursor"></span>';}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/\t/g,'    ');}
+function clearBuf(){hostBuf='';updateRecv();}
+function copyText(){navigator.clipboard.writeText(hostBuf).then(()=>toast('COPIED')).catch(()=>toast('FAIL',true));}
+function addLog(id,msg,cls='sy'){const l=$(id);if(!l)return;const e=document.createElement('div');e.className='le';e.innerHTML=`<span class="ts">[${now()}]</span> <span class="${cls}">${msg}</span>`;l.appendChild(e);l.scrollTop=l.scrollHeight;}
+function tx(d){if(!conn||!connected){toast('NOT CONNECTED',true);return false;}try{conn.send(d);return true;}catch(e){return false;}}
+function sendKey(key,d,char){tx({type:'key',key,d,char});}
+function sendText(){const el=$('r-text'),v=el.value;if(!v)return;if(tx({type:'text',v})){el.value='';toast('SENT');}}
+function toast(msg,err=false){const el=$('toast');el.textContent=msg;el.className='toast show'+(err?' err':'');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600);}
+
+// ════════════════════════════════════════════════════════
+// ELECTRIC ARC FX
+// ════════════════════════════════════════════════════════
+function electricArc(el){
+  const rect=el.getBoundingClientRect();const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const flash=document.createElement('div');flash.className='arc-flash';flash.style.setProperty('--fx',(cx/window.innerWidth*100).toFixed(1)+'%');flash.style.setProperty('--fy',(cy/window.innerHeight*100).toFixed(1)+'%');document.body.appendChild(flash);setTimeout(()=>flash.remove(),320);
+  const overlay=$('arc-overlay');const n=5+Math.floor(Math.random()*5);
+  for(let i=0;i<n;i++){const bolt=document.createElement('div');bolt.className='arc-bolt';const ang=-90+(i/n)*360+Math.random()*30-15,len=18+Math.random()*52,dur=(0.16+Math.random()*0.12).toFixed(2);bolt.style.cssText=`left:${cx-1.5}px;top:${cy}px;height:${len}px;--ang:${ang}deg;--dur:${dur}s;animation-delay:${Math.floor(Math.random()*25)}ms`;overlay.appendChild(bolt);setTimeout(()=>bolt.remove(),parseFloat(dur)*1000+80);}
+  for(let i=0;i<10;i++){const sp=document.createElement('div');sp.className='arc-spark';const a=Math.random()*Math.PI*2,dist=14+Math.random()*55,sd=(0.22+Math.random()*0.2).toFixed(2);sp.style.cssText=`left:${cx-1.5}px;top:${cy-1.5}px;--sx:${(Math.cos(a)*dist).toFixed(1)}px;--sy:${(Math.sin(a)*dist).toFixed(1)}px;--sd:${sd}s;animation-delay:${Math.floor(Math.random()*22)}ms`;document.body.appendChild(sp);setTimeout(()=>sp.remove(),parseFloat(sd)*1000+80);}
+}
+
+// ════════════════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════════════════
+function initKeyboard(){
+  document.querySelectorAll('#s-remote .k').forEach(el=>{el.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(el);},{passive:false});});
+  document.addEventListener('keydown',e=>{if($('s-remote').classList.contains('on')&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.tagName!=='INPUT'){e.preventDefault();sendKey(e.key,e.key,e.key.length===1?e.key:'');const el=document.querySelector(`[data-k="${CSS.escape(e.key)}"]`);if(el)triggerAnim(el);}});
+  $('r-text').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();sendText();}});
+}
+function triggerAnim(el){el.classList.add('dn');electricArc(el);setTimeout(()=>el.classList.remove('dn'),190);}
+function pressKey(el){
+  const key=el.dataset.k,d=el.dataset.d||el.querySelector('.main')?.textContent.trim()||key;
+  if(key==='Shift'){shiftOn=!shiftOn;[$('k-shift-l'),$('k-shift-r')].forEach(k=>k?.classList.toggle('mod-on',shiftOn));triggerAnim(el);return;}
+  if(key==='Control'){ctrlOn=!ctrlOn;$('k-ctrl')?.classList.toggle('mod-on',ctrlOn);triggerAnim(el);return;}
+  if(key==='Alt'){altOn=!altOn;$('k-alt')?.classList.toggle('mod-on',altOn);triggerAnim(el);return;}
+  let char='',fk=key,fd=d;
+  if(shiftOn&&el.dataset.sh){char=el.dataset.sh;fk=el.dataset.sh;fd=el.dataset.sh;}else if(key.length===1){char=shiftOn?key.toUpperCase():key.toLowerCase();}
+  if(shiftOn&&key!=='Shift'){shiftOn=false;[$('k-shift-l'),$('k-shift-r')].forEach(k=>k?.classList.remove('mod-on'));}
+  triggerAnim(el);sendKey(fk,fd,char);
+}
+
+// ════════════════════════════════════════════════════════
+// DISCONNECT
+// ════════════════════════════════════════════════════════
+function disc(r){
+  try{conn?.close();}catch(e){}try{peer?.destroy();}catch(e){}
+  conn=null;peer=null;connected=false;role=null;roomCode=null;shiftOn=false;ctrlOn=false;altOn=false;hostBuf='';
+  $('b-host').className='mbtn';$('b-remote').className='mbtn';
+  $('host-setup').style.display='none';$('remote-setup').style.display='none';
+  $('host-init-btn').textContent='⬡ INITIALIZE HOST';$('host-init-btn').disabled=false;
+  $('h-recv').innerHTML='<span class="cursor"></span>';$('h-log').innerHTML='';
+  setScreen('s-main');toast('DISCONNECTED');
+}
+
+// ════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════
+window.addEventListener('load', runIntro);
+</script>
+</body>
+</html>
